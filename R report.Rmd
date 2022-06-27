@@ -1,0 +1,162 @@
+---
+title: "Lab 3 R"
+author: "Lukasz Gorny"
+date: '2022-06-27'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Zadanie 2 & 3 (brak porownania statystycznego - bedzie na kolejnych zajeciach)
+
+
+
+```{r echo=FALSE}
+library(dplyr)
+library(stringr)
+library(gtools)
+library(rvest)
+library(xml2)
+
+# loading in data from CSV containing scraped basic stats for each city 
+path <- "C:\\Users\\Ukasz\\Desktop\\BIG DATA\\_R\\LAB3\\df_basic_stats.csv"
+df_basic_stats <- read.csv(path,fileEncoding = "UTF-8")
+df_basic_stats <- df_basic_stats[order(df_basic_stats$miasta, decreasing = FALSE), ]
+df_basic_stats <- select(df_basic_stats, "miasta", "srednie_cenny", "srednie_cenny_za_metr")
+
+```
+
+### A) Czy i jak różnią się średnie ceny ofertowe sprzedaży mieszkań dla miast - **Warszawa** i **Lublin**.
+
+Tabela srednich ceny lokali do 38 m2 oraz srednia cena za m2 (rowniez obliczona dla lokali do 18 m2)
+```{r echo=FALSE}
+df_basic_stats
+
+```
+
+```{r echo=FALSE}
+
+
+vc <- c('lublin', 'warszawa')
+dt <- df_basic_stats[df_basic_stats$miasta %in% vc,]
+
+# Srednie ceny  lokali do 38 m2
+x <- dt$miasta
+options(scipen=999)
+y <- dt$srednie_cenny
+
+barplot(y, names.arg = x, density = 10, main="Srednie ceny  lokali do 38 m2")
+
+warszawa <- filter(df_basic_stats, miasta=='warszawa')$srednie_cenny 
+lublin <- filter(df_basic_stats, miasta=='lublin')$srednie_cenny 
+
+roznica = round(warszawa - lublin, digits = 0)
+paste0("Srednia cena za lokal do 38m2 w Warszawie jest wyzsze o: ", roznica,"zl.")
+
+```
+
+
+```{r echo=FALSE}
+# Srednie cena za metr - MIASTA
+x <- dt$miasta
+options(scipen=999)
+y <- dt$srednie_cenny_za_metr
+
+barplot(y, names.arg = x, density = 10, main="Srednie ceny za m²")
+
+warszawa <- filter(df_basic_stats, miasta=='warszawa')$srednie_cenny_za_metr 
+lublin <- filter(df_basic_stats, miasta=='lublin')$srednie_cenny_za_metr 
+
+roznica = round(warszawa - lublin, digits = 0)
+paste0("Srednie ceny za m2 dla lokali do 38m2 w Warszawie jest wyzsze o: ", roznica,"zl.")
+```
+
+### B) Czy i jak różnią się średnie ceny ofertowe sprzedaży mieszkań  dla wszystkich miast .
+
+```{r echo=FALSE}
+x <- df_basic_stats$miasta
+options(scipen=999)
+y <- df_basic_stats$srednie_cenny
+
+barplot(y, names.arg = x, density = 10, main="Srednie ceny ",las=2)
+avg <- mean(df_basic_stats[["srednie_cenny"]])
+abline( h = avg, col = "Pink", lty = 4)
+```
+
+```{r echo=FALSE}
+x <- df_basic_stats$miasta
+options(scipen=999)
+y <- df_basic_stats$srednie_cenny_za_metr
+
+barplot(y, names.arg = x, density = 10, main="Srednie ceny za m²",las=2)
+avg <- mean(df_basic_stats[["srednie_cenny_za_metr"]])
+abline( h = avg, col = "Pink", lty = 4)
+```
+
+
+
+
+
+## 3. Wykonać raport wskazując nalepsze miasto do zakupu mieszkania biorąc pod uwagę średnie ceny wynajmu z linku.
+Dane pozyskane poprzez web scraping z Bankier.pl
+
+```{r echo=FALSE}
+path <- "C:\\Users\\Ukasz\\Desktop\\BIG DATA\\_R\\LAB3\\bankier_pl_table.csv"
+table <- read.csv(path,fileEncoding = "UTF-8")
+table <- select(table, "Miasto", "Srednia.cena..w.zl.m.c.", "Zmiana.r.r..w.proc..", "Zmiana.m.m..w.proc.." )
+table
+```
+
+
+```{r echo=FALSE}
+# Srednie ceny  - MIASTA
+y <- table[["Srednia.cena..w.zl.m.c."]]
+y <-  gsub(" ", "", y)
+y <- as.numeric(y)
+
+options(scipen=999)
+x <- table$Miasto
+
+barplot(y, names.arg = x, density = 10, main="Srednie ceny wynajmu",las=2)
+```
+
+
+
+
+```{r echo=FALSE}
+# Change compared to last year in %
+y <- table[["Zmiana.r.r..w.proc.."]]
+y <-  gsub(" ", "", y)
+y <-  gsub(",", ".", y)
+y <-  gsub("+", "", y)
+y <- as.numeric(y)
+
+options(scipen=999)
+x <- table$Miasto
+
+barplot(y, names.arg = x, density = 10, main="Zmiana r/r [w proc.]",las=2)
+```
+
+
+
+```{r echo=FALSE}
+# Change compared to the previous month in%
+y <- table[["Zmiana.m.m..w.proc.."]]
+y <-  gsub(" ", "", y)
+y <-  gsub(",", ".", y)
+y <-  gsub("+", "", y)
+y <- as.numeric(y)
+
+options(scipen=999)
+x <- table$Miasto
+
+barplot(y, names.arg = x, density = 10, main="Zmiana m/m [w proc.]",las=2)
+```
+
+
+
+
+
+
